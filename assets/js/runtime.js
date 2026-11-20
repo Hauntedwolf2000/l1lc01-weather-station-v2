@@ -8,12 +8,12 @@ function $(s, r) { return (r || document).querySelector(s); }
 function $$(s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); }
 function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
 function uid() { try { var a = new Uint8Array(8); crypto.getRandomValues(a); return Array.prototype.map.call(a, function (x) { return ('0' + x.toString(16)).slice(-2); }).join(''); } catch (e) { return Math.random().toString(16).slice(2, 10) + Date.now().toString(16); } }
-function lsGet() { try { return sessionStorage.getItem(KEY); } catch (e) { return mem; } }
-function lsSet(v) { try { sessionStorage.setItem(KEY, v); } catch (e) { mem = v; } } // DP-405: a storage failure never blocks progress
+function lsGet() { try { return localStorage.getItem(KEY); } catch (e) { return mem; } }
+function lsSet(v) { try { localStorage.setItem(KEY, v); } catch (e) { mem = v; } } // DP-405: a storage failure never blocks progress // DP-405: a storage failure never blocks progress
 function reduced() { try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) { return false; } }
 
 /* ---------- state, scoring ---------- */
-function fresh() { return { v: 1, attemptId: uid(), learnerId: null, name: '', seed: '', startedAt: new Date().toISOString(), step: 0, sound: false, items: {}, x: {}, submitted: false, final: null, rp: 0 }; }
+function fresh() { return { v: 1, attemptId: uid(), learnerId: null, name: '', seed: '', startedAt: new Date().toISOString(), step: 0, sound: false, voice: true, items: {}, x: {}, submitted: false, final: null, rp: 0 }; }
 function save() { lsSet(JSON.stringify(S)); LMS.saveState(S); try { LMS.setProgress(progressPct()); } catch (e) {} }
 function def(id) { return C.items.filter(function (x) { return x.id === id; })[0]; }
 function it(id) { return S.items[id] || (S.items[id] = { a: 0, done: false, ok: false, rev: false, frac: null, resp: null }); }
@@ -34,8 +34,11 @@ function how(id) { var s = it(id); return s.rev ? 'Answer shown' : s.a === 1 ? '
 
 /* ---------- sound effects (muted by default, DP-508) and narration (DP-516) ---------- */
 var AC = null;
-function beep(f, d, type, when) { if (!S.sound) return; try { AC = AC || new (window.AudioContext || window.webkitAudioContext)(); var o = AC.createOscillator(), g = AC.createGain(); o.type = type || 'sine'; o.frequency.value = f; o.connect(g); g.connect(AC.destination); var t = AC.currentTime + (when || 0); g.gain.setValueAtTime(0.06, t); g.gain.exponentialRampToValueAtTime(0.0001, t + d); o.start(t); o.stop(t + d + 0.02); } catch (e) {} }
-var SFX = { tap: function () { beep(520, 0.06); }, ok: function () { beep(660, 0.1); beep(880, 0.15, 'sine', 0.09); }, bad: function () { beep(220, 0.2, 'triangle'); }, done: function () { [523, 659, 784, 1047].forEach(function (f, i) { beep(f, 0.15, 'sine', i * 0.1); }); } };
+function beep(f, d, type, when, vol) { if (!S.sound) return; try { AC = AC || new (window.AudioContext || window.webkitAudioContext)(); var o = AC.createOscillator(), g = AC.createGain(); o.type = type || 'sine'; o.frequency.value = f; o.connect(g); g.connect(AC.destination); var t = AC.currentTime + (when || 0); g.gain.setValueAtTime(vol || 0.06, t); g.gain.exponentialRampToValueAtTime(0.0001, t + d); o.start(t); o.stop(t + d + 0.02); } catch (e) {} }
+var SFX = { tap: function () { beep(520, 0.06); },
+  ok: function () { [[784, 0], [988, 0.09], [1175, 0.18], [1568, 0.3]].forEach(function (n) { beep(n[0], 0.34, 'sine', n[1], 0.11); beep(n[0] * 2, 0.2, 'triangle', n[1], 0.03); }); }, // bright rising chime for a correct answer
+  bad: function () { beep(196, 0.18, 'triangle', 0, 0.07); beep(165, 0.3, 'triangle', 0.14, 0.07); },
+  done: function () { [523, 659, 784, 1047, 1319].forEach(function (f, i) { beep(f, 0.22, 'sine', i * 0.12, 0.1); }); } };
 
 /* ---------- stage ---------- */
 function fitStage() { var w = window.innerWidth, h = window.innerHeight, k = Math.min(w / 1920, h / 1080); T.k = k; $('#stage').style.transform = 'translate(' + (w - 1920 * k) / 2 + 'px,' + (h - 1080 * k) / 2 + 'px) scale(' + k + ')'; $('#rot').hidden = !(h > w); }
@@ -55,6 +58,7 @@ function header() {
   $('#pbar').innerHTML = bar; $('#plabel').textContent = fin ? 'Completed' : cur().mis ? cur().mis.name + (cur().mis.solve ? ' · Solution' : cur().mis.task ? ' · Task ' + cur().mis.task + ' of ' + cur().mis.tasks : '') : idx >= 0 ? 'Step ' + (idx + 1) + ' of ' + J.length + ': ' + cur().name : cur().id === 'start' ? 'Welcome' : cur().name;
   $('#b-snd').classList.toggle('off', !S.sound);
   $('#b-snd').setAttribute('aria-pressed', S.sound);
+  $('#b-voice').classList.toggle('off', S.voice === false); $('#b-voice').setAttribute('aria-pressed', S.voice !== false); $('#b-hear').disabled = S.voice === false;
 }
 function render() {
   window.Coach.stop(); hideHand(); idleArm(); T.cT.forEach(clearTimeout); T.cT = []; (T.off || []).forEach(function (o) { o[0].removeEventListener(o[1], o[2]); }); T.off = []; clearTimeout(T.tm);
@@ -70,13 +74,14 @@ function coachLines(sc) {
   if (!L.length) return null;
   L = L.map(function (l) { return typeof l === 'string' ? { t: l } : Object.assign({}, l); });
   if (sc.mis && L.length) { var lt = L[L.length - 1], m = sc.mis; lt.eb = m.name + ' \u00B7 ' + (m.solve ? 'Solution' : m.task ? 'Task ' + m.task + ' of ' + m.tasks : 'Set up') + (lt.skill ? ' \u00B7 ' + lt.skill : ''); }
+  if (L.length) L.push({ ins: true, sid: sc.id }); // then the instruction that is already on the screen is read aloud (DP-516), not shown again
   return L;
 }
 function coachRun(force, after) {
   var sc = cur(), L = coachLines(sc);
   if (!L) { if (after) after(); return; }
   if (!force && S.cs && S.cs[sc.id]) return;
-  window.Coach.play(L, { steps: journey().map(function (x) { return x.name; }), 
+  window.Coach.play(L, { voice: S.voice !== false, 
     done: function () { S.cs = S.cs || {}; S.cs[sc.id] = 1; save(); idleArm(); if (after) after(); } });
 }
 function idleArm(ms) { // a child who pauses sees the hand by itself (no voice)
@@ -93,7 +98,7 @@ function cueRun(spec) { // same pointing hand as StoryDice: tap, tap-then-tap (s
   tf = function (q, s) { return 'translate(' + (q.x - 38) + 'px,' + (q.y - (low ? 96 : 8)) + 'px) scale(' + s + ')'; };
   if (spec.drag) { dur = 2600; fr = [{ transform: tf(a, 1), opacity: 0, offset: 0 }, { transform: tf(a, 1), opacity: 1, offset: 0.12 }, { transform: tf(a, 0.82), opacity: 1, offset: 0.22 }, { transform: tf(b, 0.82), opacity: 1, offset: 0.7 }, { transform: tf(b, 1), opacity: 1, offset: 0.8 }, { transform: tf(b, 1), opacity: 0, offset: 1 }]; }
   else { dur = 1100 * pts.length + 500; fr.push({ transform: tf(pts[0], 1), opacity: 0, offset: 0 }); pts.forEach(function (q, i) { var s = i * 1100; fr.push({ transform: tf(q, 1), opacity: 0, offset: (s + 150) / dur }, { transform: tf(q, 1), opacity: 1, offset: (s + 350) / dur }, { transform: tf(q, 0.8), opacity: 1, offset: (s + 650) / dur }, { transform: tf(q, 1), opacity: 1, offset: (s + 900) / dur }, { transform: tf(q, 1), opacity: 0, offset: (s + 1050) / dur }); }); fr.push({ transform: fr[fr.length - 1].transform, opacity: 0, offset: 1 }); }
-  var h = $('#hand'); h.hidden = false; h.textContent = low ? '\uD83D\uDC47' : '\uD83D\uDC46'; T.hA = h.animate(fr, { duration: dur, iterations: 2, easing: 'ease-in-out' }); T.hA.onfinish = hideHand;
+  var h = $('#hand'); h.hidden = false; if (!h.firstChild) h.innerHTML = '<img src="assets/img/hand.webp" alt="">'; h.className = low ? 'down' : ''; T.hA = h.animate(fr, { duration: dur, iterations: 2, easing: 'ease-in-out' }); T.hA.onfinish = hideHand;
 }
 function winOn(type, fn) { window.addEventListener(type, fn); (T.off = T.off || []).push([window, type, fn]); }
 function setFoot(o) {
@@ -102,7 +107,7 @@ function setFoot(o) {
   T.main = o.go; T.back = o.back || function () { go(S.step - 1); };
   var tr = $('#tries'); tr.innerHTML = o.tries != null ? o.tries : o.item && !done(o.item) ? triesHtml(o.item) : (o.st ? '<span class="line">' + esc(o.st) + '</span>' : '');
 }
-function pips(id) { var l = left(id), n = maxA(id), h = ''; for (var i = 0; i < n; i++) h += '<span class="pip ' + (i < l ? 'f' : 'e') + '" aria-hidden="true">' + (i < l ? '★' : '☆') + '</span>'; return h; }
+function pips(id) { var l = left(id), n = maxA(id), h = ''; for (var i = 0; i < n; i++) h += '<span class="pip ' + (i < l ? 'f' : 'e') + '" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.3 6.1 20.6l1.3-6.6L2.5 9.4l6.6-.8z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg></span>'; return h; }
 function triesHtml(id) { var l = left(id); return '<span class="pips" aria-hidden="true">' + pips(id) + '</span><span class="line">' + l + (l === 1 ? ' try left. A wrong answer shows the answer.' : ' tries left. A wrong answer costs a star.') + '</span>'; }
 function lostHtml(id) { var l = left(id); return l > 0 ? 'You lost a star. ' + l + (l === 1 ? ' try' : ' tries') + ' left.' : 'No tries left, so the answer is shown.'; }
 function fb(kind, title, body) { // right/wrong is never colour alone (DP-504): icon + word; arrives like a chat message
@@ -123,7 +128,7 @@ function chat(el) {
 }
 
 /* ---------- numeric keypad (no typing in scored steps, DP-307) ---------- */
-function padHtml() { var keys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '.', 'b', 'c']; return '<div class="pad">' + keys.map(function (k) { return '<button class="key" data-k="' + k + '" aria-label="' + ({ b: 'Delete', c: 'Clear' }[k] || k) + '">' + ({ b: '⌫', c: 'C' }[k] || k) + '</button>'; }).join('') + '</div>'; }
+function padHtml() { var keys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '.', 'b', 'c']; return '<div class="pad">' + keys.map(function (k) { return '<button class="key" data-k="' + k + '" aria-label="' + ({ b: 'Delete', c: 'Clear' }[k] || k) + '">' + ({ b: '<svg viewBox="0 0 48 48" fill="none" aria-hidden="true"><path d="M16 10h26a2 2 0 0 1 2 2v24a2 2 0 0 1-2 2H16L4 24 16 10Z" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round"/><path d="M24 18l10 12M34 18 24 30" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"/></svg>', c: 'C' }[k] || k) + '</button>'; }).join('') + '</div>'; }
 function keypad(host, n, onChange) {
   var at = 0, vals = []; for (var i = 0; i < n; i++) vals.push('');
   function paint() { $$('.field', host).forEach(function (fe, i) { fe.textContent = vals[i] === '' ? '?' : vals[i]; fe.classList.toggle('on', i === at); }); if (onChange) onChange(vals); }
@@ -133,7 +138,6 @@ function keypad(host, n, onChange) {
     if (v === 'c') vals[at] = ''; else if (v === 'b') vals[at] = vals[at].slice(0, -1); else if (v === '.') { if (vals[at].indexOf('.') < 0 && vals[at] !== '') vals[at] += '.'; } else if (vals[at].length < 6) vals[at] += v;
     paint();
   });
-  host.addEventListener('keydown', function (e) { if (/^[0-9]$/.test(e.key)) { var b = $('.key[data-k="' + e.key + '"]', host); if (b) b.click(); } else if (e.key === 'Backspace') { var d = $('.key[data-k="b"]', host); if (d) d.click(); } }); // keyboard moves around; digits only feed the keypad
   paint(); return { vals: function () { return vals; }, mark: function (i, c) { var fe = $$('.field', host)[i]; fe.classList.remove('ok', 'no'); if (c) fe.classList.add(c); }, lock: function () { $$('.key', host).forEach(function (k) { k.disabled = true; }); } };
 }
 
@@ -177,15 +181,22 @@ function bridgeInit() {
     getMetrics: function () { var sc = score(); return { userId: S.learnerId, stepIndex: S.step, stepId: cur().id, totalSteps: SC.length, progressPercent: progressPct(), pts: sc.points, maxPts: 1000, completed: !!S.submitted }; },
     getActivityData: function () { return { selections: S.x, responses: C.items.map(function (d) { var s = S.items[d.id] || {}; return { question: d.id, selected_option: s.resp, is_correct: !!s.ok, attempt: s.a || 0 }; }) }; } });
 }
-function checkWeights() { var t = C.items.reduce(function (a, d) { return a + d.w; }, 0); if (Math.abs(t - 100) > 1e-9) throw new Error('Item weights must sum to 100, got ' + t); } // DP-804: the build fails otherwise
+function checkWeights() { var sets = C.missions ? Object.keys(C.missions).map(function (k) { return C.missions[k]; }) : [C.items]; sets.forEach(function (it_) { var t = it_.reduce(function (a, d) { return a + d.w; }, 0); if (Math.abs(t - 100) > 1e-9) throw new Error('Item weights must sum to 100, got ' + t); }); } // DP-804: the build fails otherwise
 function run(cfg) {
   CFG = cfg; C = cfg.C; KEY = 'ulipsu_' + C.id.toLowerCase() + '_' + C.version.replace(/\./g, '_'); checkWeights();
   ALL = cfg.scenes.concat([reviewScene(), submittedScene()]); S = fresh(); rebuild();
   $('.ttl-text').textContent = C.title; document.title = C.title;
   $('#b-back').addEventListener('click', function () { if (T.back) T.back(); });
   $('#b-main').addEventListener('click', function () { if (T.main && !$('#b-main').disabled) T.main(); });
+  function helpFor(sc) { var its = (sc.items || []).map(def).filter(Boolean), t = its[0] && its[0].type, m = sc.mis, hp = sc.help || {};
+    return { goal: hp.goal || (m ? (m.solve ? 'See the answer your work built for ' + m.name + '.' : 'Finish this task to help you decide ' + m.name + '.') : sc.name),
+      how: hp.how || (t === 'numeric' ? 'Tap the number keys, then press Check. Keyboard: Tab to a key, press Enter.' : t === 'chart' ? 'Drag each dot up or down, or tap a column. Keyboard: Tab to a dot, then use the Up and Down arrows.' : t === 'match' ? 'Drag a card onto its place, or tap the card and then the place. Keyboard: Enter picks, Tab moves, Enter drops.' : 'Tap a choice, then press the main button.'),
+      score: hp.score || (its.length ? 'You get up to 3 tries. Right first time earns full marks, the second try less, the third least.' : 'Nothing on this screen is scored.') + ' Opening Help never costs a try.' }; }
   function pointer() { var m = $('#b-main'), c = cur().cue ? cur().cue() : null; cueRun(c || (!m.hidden && !m.disabled ? { tap: '#b-main' } : null)); }
-  $('#b-help').addEventListener('click', pointer); // Help = the pointing hand only (the guide never comes back) // Help shows the next move with a hand; it is never read aloud and costs nothing
+  $('#b-help').addEventListener('click', function () { var hp = helpFor(cur()); showLayer('<h2>Help</h2><p><b>Goal.</b> ' + esc(hp.goal) + '</p><p><b>How.</b> ' + esc(hp.how) + '</p><p><b>Scoring.</b> ' + esc(hp.score) + '</p><p class="ra"><button class="btn" id="h-show">Show me</button><button class="btn pri" data-close="1">Close</button></p>', 'help'); $('#h-show').addEventListener('click', function () { hideLayer(); pointer(); }); }); // opening Help never costs a try
+  $('#b-voice').addEventListener('click', function () { S.voice = S.voice === false; window.Coach.setVoice(S.voice !== false); save(); header(); SFX.tap(); });
+  $('#b-hear').addEventListener('click', function () { if (S.voice === false || window.Coach.active()) return; var L = coachLines(cur()); if (L) window.Coach.hear(L); });
+  window.Coach.setVoice(true);
   $('#b-snd').addEventListener('click', function () { S.sound = !S.sound; save(); header(); SFX.tap(); });
   document.addEventListener('click', function (e) { if (e.target.closest && e.target.closest('[data-close]')) hideLayer(); });
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape') hideLayer(); hideHand(); idleArm(); });
@@ -196,7 +207,7 @@ function run(cfg) {
   document.addEventListener('visibilitychange', function () { if (document.hidden) save(); }); window.addEventListener('pagehide', save);
   fitStage();
   LMS.init().then(function (r) {
-    var saved = r.savedState; if (!saved && !LMS.banner) { try { var j = lsGet(); saved = j ? JSON.parse(j) : null; } catch (e) { saved = null; } }
+    var saved = r.savedState; if (!saved) { try { var j = lsGet(); saved = j ? JSON.parse(j) : null; } catch (e) { saved = null; } }
     if (saved && saved.v === 1) S = Object.assign(fresh(), saved); rebuild();
     S.learnerId = r.learnerId || S.learnerId || null; if (!S.seed) S.seed = (S.learnerId || uid()) + '|' + C.id; // DP-611: same data on reopening
     if (r.status === 'submitted') S.submitted = true; if (S.submitted) S.step = SC.length - 1;
@@ -205,7 +216,7 @@ function run(cfg) {
   });
 }
 
-var K = { $: $, $$: $$, esc: esc, S: function () { return S; }, D: ensureData, C: function () { return C; }, save: save, go: go, rebuild: rebuild, next: function () { go(S.step + 1); }, setFoot: setFoot, it: it, left: left, done: done, attempt: attempt, maxA: maxA, how: how, pips: pips, triesHtml: triesHtml, lostHtml: lostHtml, fb: fb, guide: guide,
+var K = { $: $, $$: $$, esc: esc, S: function () { return S; }, D: ensureData, C: function () { return C; }, save: save, go: go, rebuild: rebuild, score: score, firstTry: firstTry, buildPDF: buildPDF, next: function () { go(S.step + 1); }, setFoot: setFoot, it: it, left: left, done: done, attempt: attempt, maxA: maxA, how: how, pips: pips, triesHtml: triesHtml, lostHtml: lostHtml, fb: fb, guide: guide,
   keypad: keypad, padHtml: padHtml, SFX: SFX, showLayer: showLayer, hideLayer: hideLayer, stagePt: stagePt, winOn: winOn, started: started, reduced: reduced, firstTry: firstTry, score: score, allDone: allDone, tm: function (fn, ms) { T.tm = setTimeout(fn, ms); }, run: run };
 window.DP = K;
 })();

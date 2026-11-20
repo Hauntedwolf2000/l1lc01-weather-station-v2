@@ -1,5 +1,5 @@
-/* L1LC01 Weather Station (story mode): the learner picks ONE of three town problems. The problem is solved by five small tasks whose answers feed a final decision.
-   Picnic Day (a1-a5), Out Today from today's date (b1-b5), Sports Day (c1-c5). Only the chosen mission's scenes and scored items are used. */
+/* L1LC01 Weather Station (story mode): the learner picks ONE of three everyday situations. Six different tasks feed one final decision.
+   Picnic Day (a1-a6), Out Today from today's date (b1-b6), Sports Day (c1-c6). Only the chosen mission's scenes and scored items are used. */
 'use strict';
 (function () {
 var K = window.DP, Kit = window.Kit, $ = K.$, $$ = K.$$, esc = K.esc;
@@ -74,7 +74,7 @@ function chartScene(id, p, labels, guide, logTitle) { // drag each dot to its te
     function paint() { var s = '<svg viewBox="0 0 ' + W + ' ' + H + '"><rect x="' + L + '" y="20" width="' + (W - L - 10) + '" height="' + (H - 20 - B) + '" fill="#F4FBFF" stroke="#24405F" stroke-width="3"/>';
       for (var t = lo; t <= hi; t += 2) s += '<line x1="' + L + '" x2="' + (W - 10) + '" y1="' + Y(t) + '" y2="' + Y(t) + '" stroke="#BFE3F7" stroke-width="2"/><text x="' + (L - 10) + '" y="' + (Y(t) + 10) + '" font-size="28" text-anchor="end" fill="#24405F">' + t + '</text>';
       for (var i = 0; i < N; i++) { s += '<text x="' + X(i) + '" y="' + (H - 12) + '" font-size="26" text-anchor="middle" fill="#24405F">' + labels.items[i] + '</text>'; if (v[i] != null) s += '<line x1="' + X(i) + '" x2="' + X(i) + '" y1="' + Y(v[i]) + '" y2="' + (H - B) + '" stroke="#3A9BDC" stroke-width="10" opacity=".35"/>'; }
-      for (i = 0; i < N; i++) { var y = v[i] == null ? H - B - 30 : Y(v[i]); s += '<g class="dot" tabindex="0" data-i="' + i + '" role="slider" aria-label="' + labels.items[i] + ' temperature" aria-valuenow="' + (v[i] == null ? '' : v[i]) + '"><circle class="d" cx="' + X(i) + '" cy="' + y + '" r="30" fill="' + (v[i] == null ? '#fff' : fin ? '#0B7A4B' : '#E4572E') + '" stroke="#24405F" stroke-width="5"' + (v[i] == null ? ' stroke-dasharray="8 6"' : '') + '/><text x="' + X(i) + '" y="' + (y + 10) + '" font-size="28" font-weight="700" text-anchor="middle" fill="' + (v[i] == null ? '#24405F' : '#fff') + '">' + (v[i] == null ? '?' : v[i]) + '</text></g>'; }
+      for (i = 0; i < N; i++) { var y = v[i] == null ? H - B - 30 : Y(v[i]); s += '<g class="dot" tabindex="0" data-i="' + i + '" role="slider" aria-label="' + labels.items[i] + ' temperature" aria-valuenow="' + (v[i] == null ? '' : v[i]) + '"><circle cx="' + X(i) + '" cy="' + y + '" r="66" fill="transparent"/><circle class="d" cx="' + X(i) + '" cy="' + y + '" r="30" fill="' + (v[i] == null ? '#fff' : fin ? '#0B7A4B' : '#E4572E') + '" stroke="#24405F" stroke-width="5"' + (v[i] == null ? ' stroke-dasharray="8 6"' : '') + '/><text x="' + X(i) + '" y="' + (y + 10) + '" font-size="28" font-weight="700" text-anchor="middle" fill="' + (v[i] == null ? '#24405F' : '#fff') + '">' + (v[i] == null ? '?' : v[i]) + '</text></g>'; }
       $('#chart').innerHTML = s + '</svg>'; var n = v.filter(function (a) { return a != null; }).length; if (!K.done(id)) K.setFoot({ main: 'Check', en: n === N, item: id, go: check }); }
     var drag = null, svg = function () { return $('#chart svg'); };
     function yOf(e) { var r = svg().getBoundingClientRect(), k = r.width / W; return (e.clientY - r.top) / k; }
@@ -100,60 +100,60 @@ var DAYS = ['Day 1', 'Day 2', 'Day 3', 'Day 4'], TIMES = ['Morning', 'Noon', 'Af
 /* ---------- the scenes ---------- */
 var scenes = [];
 // MISSION 1: Picnic Day
-scenes.push(Kit.cards({ id: 'season', name: 'Pick a season', key: 'season', title: 'Which season is our picnic in?', reset: ['a_a2', 'a_a5', 'cv_a3'], opts: Object.keys(SEASONS).map(function (k) { return { id: k, t: SEASONS[k].n, sub: k === 'monsoon' ? 'Rain and clouds' : k === 'spring' ? 'Fresh and breezy' : 'Hot and bright', html: skySvg(k === 'monsoon' ? 'rainy' : k === 'spring' ? 'windy' : 'sunny') }; }) }));
-scenes.push(readScene('a1', 'A', DAYS, ['Is it too hot for the picnic?', 'Read each one. Enter the <b>°C</b>.']));
-scenes.push(skyScene('a2', 'A', DAYS, ['Will it rain on Picnic Day?', 'Drop the right word on each window.']));
-scenes.push(chartScene('a3', 'A', { head: 'Day', items: DAYS }, ['Show the mayor the week.', 'Drag each dot to its temperature.'], 'Picnic week log'));
-scenes.push(Kit.num({ id: 'a4', name: 'Compare days', guide: function () { return ['How many °C warmer is the hottest day than the coldest?']; }, reveal: function (D) { return Math.max.apply(null, D.A.w) + ' − ' + Math.min.apply(null, D.A.w) + ' = ' + D.A.range; }, hint: function () { return 'Find the biggest and the smallest number. Take the small from the big. '; }, bad1: function () { return 'Pick the highest and lowest numbers in the log. '; },
+scenes.push(Kit.cards({ id: 'season', name: 'Pick a season', key: 'season', title: INSTR.season[0], reset: ['a_a2', 'a_a5', 'cv_a3'], opts: Object.keys(SEASONS).map(function (k) { return { id: k, t: SEASONS[k].n, sub: k === 'monsoon' ? 'Rain and clouds' : k === 'spring' ? 'Fresh and breezy' : 'Hot and bright', html: skySvg(k === 'monsoon' ? 'rainy' : k === 'spring' ? 'windy' : 'sunny') }; }) }));
+scenes.push(readScene('a1', 'A', DAYS, INSTR.a1));
+scenes.push(skyScene('a2', 'A', DAYS, INSTR.a2));
+scenes.push(chartScene('a3', 'A', { head: 'Day', items: DAYS }, INSTR.a3, 'Picnic week log'));
+scenes.push(Kit.num({ id: 'a4', name: 'Compare days', guide: function () { return INSTR.a4; }, reveal: function (D) { return Math.max.apply(null, D.A.w) + ' − ' + Math.min.apply(null, D.A.w) + ' = ' + D.A.range; }, hint: function () { return 'Find the biggest and the smallest number. Take the small from the big. '; }, bad1: function () { return 'Pick the highest and lowest numbers in the log. '; },
   top: function (D) { return table('Picnic week', DAYS, D.A.w); }, fields: function (D) { return [{ lbl: 'Difference', ans: D.A.range, unit: '°C' }]; } }));
-scenes.push(Kit.slots({ id: 'a5', name: 'Picnic or stay home', cls: 'bins', cols: 2, guide: function () { return ['Picnic-friendly: dry, calm and under 33°C.', 'Sort each day.']; }, reveal: 'Each day is in its right place.',
+scenes.push(Kit.slots({ id: 'a5', name: 'Picnic or stay home', cls: 'bins', cols: 2, guide: function () { return INSTR.a5; }, reveal: 'Each day is in its right place.',
   chips: function (D) { var d = D.A; return d.w.map(function (t, i) { return { id: 'd' + i, html: 'Day ' + (i + 1) + ' · ' + t + '°C · ' + SKIES[d.sky[i]], slot: d.good[i] ? 'yes' : 'no' }; }); },
   slots: function () { return [{ id: 'yes', label: 'Picnic day', cap: 4 }, { id: 'no', label: 'Stay home', cap: 4 }]; }, ready: function (asg) { return Object.keys(asg).length === 4; },
   bad1: function (D, n) { return n + ' days are in the wrong place. '; }, hint: function () { return 'Rain or wind means stay home. So does 33°C or more. '; } }));
-scenes.push(Kit.slots({ id: 'a6', name: 'Write the notice', cls: 'journal', guide: function () { return ['Write the picnic notice.', 'Use the best day from your sorting.']; }, reveal: 'The notice is filled in.',
+scenes.push(Kit.slots({ id: 'a6', name: 'Write the notice', cls: 'journal', guide: function () { return INSTR.a6; }, reveal: 'The notice is filled in.',
   chips: function (D) { var d = D.A, b = d.best, bring = d.sky[b] === 'cloudy' ? 'Umbrella' : 'Sun hat', oth = ['Sun hat', 'Umbrella', 'Raincoat'].filter(function (x) { return x !== bring; }), days = [0, 1, 2, 3].filter(function (i) { return i !== b; }), sk = Object.keys(SKIES).filter(function (k) { return k !== d.sky[b]; });
     return [{ id: 'dy', html: 'Day ' + (b + 1), slot: 'day' }, { id: 'wx', html: SKIES[d.sky[b]], slot: 'wx' }, { id: 'br', html: bring, slot: 'br' }, { id: 'x1', html: 'Day ' + (days[0] + 1), slot: null }, { id: 'x2', html: 'Day ' + (days[1] + 1), slot: null }, { id: 'x3', html: SKIES[sk[0]], slot: null }, { id: 'x4', html: SKIES[sk[1]], slot: null }, { id: 'x5', html: oth[0], slot: null }, { id: 'x6', html: oth[1], slot: null }].sort(function (p, q) { return p.html < q.html ? -1 : 1; }); },
   slots: function () { return [{ id: 'day', label: 'Picnic day' }, { id: 'wx', label: 'Weather' }, { id: 'br', label: 'Bring' }]; }, cols: 1, bad1: function (D, n) { return n + ' notes are in the wrong place. '; }, hint: function () { return 'Best day: dry, calm and the coolest. Bring a hat for sun, an umbrella for clouds. '; } }));
-scenes.push(solveScene('aS', function (D) { var d = D.A; return '<div class="eyebrow">Your solution</div><h2>Picnic on Day ' + (d.best + 1) + '!</h2><p class="why">The driest, calmest day, and the coolest of the good ones.</p><div class="days">' + d.w.map(function (t, i) { return dayCard(d, i, i === d.best ? 'Picnic day!' : d.good[i] ? 'Good too' : 'Stay home', i === d.best ? 'best' : d.good[i] ? '' : 'no'); }).join('') + '</div>'; }));
+scenes.push(solveScene('aS', function (D) { var d = D.A; return '<div class="eyebrow">' + INSTR.aS[0] + '</div><h2>Picnic on Day ' + (d.best + 1) + '!</h2><p class="why">The driest, calmest day, and the coolest of the good ones.</p><div class="days">' + d.w.map(function (t, i) { return dayCard(d, i, i === d.best ? 'Picnic day!' : d.good[i] ? 'Good too' : 'Stay home', i === d.best ? 'best' : d.good[i] ? '' : 'no'); }).join('') + '</div>'; }));
 // MISSION 2: Out Today (built from the real date)
 scenes.push(choiceScene('b1', 'Season from the date', 'Today is in the…', function (D) { return ['Today is <b>' + D.B.dateText + '</b>.', 'Mar–May: Summer · Jun–Sep: Monsoon · Oct–Feb: Cool']; },
   function (D) { return Object.keys(SEASONS).map(function (k) { return { id: k, html: SEASONS[k].n, slot: k === D.B.season ? 'pick' : null }; }); }, 'Look at the month. March to May is Summer, June to September is Monsoon, the rest is the Cool season.'));
-scenes.push(readScene('b2', 'B', TIMES, ['What is today like?', 'Read each one. Enter the <b>°C</b>.']));
-scenes.push(skyScene('b3', 'B', ['Morning', 'Noon', 'Evening'], ['Look outside. What is the sky doing?', 'Drop the right word on each window.']));
-scenes.push(choiceScene('b4', 'Best time to go out', 'The coolest time is…', function () { return ['Which time of day is coolest?', 'Pick it.']; },
+scenes.push(readScene('b2', 'B', TIMES, INSTR.b2));
+scenes.push(skyScene('b3', 'B', ['Morning', 'Noon', 'Evening'], INSTR.b3));
+scenes.push(choiceScene('b4', 'Best time to go out', 'The coolest time is…', function () { return INSTR.b4; },
   function (D) { return D.B.w.map(function (t, i) { return { id: 't' + i, html: TIMES[i] + ' · ' + t + '°C', slot: i === D.B.bestTime ? 'pick' : null }; }); }, 'Look for the smallest number.'));
 scenes.push(choiceScene('b5', 'What to wear', 'Today I wear…', function (D) { return ['Noon: <b>' + D.B.noonT + '°C</b> and <b>' + SKIES[D.B.noonSky] + '</b>', 'What should we wear?']; },
-  function (D) { return Object.keys(CLOTHES).map(function (k) { return { id: k, html: CLOTHES[k] + ' · ' + CLOTHES_WHY[k], slot: k === D.B.wear ? 'pick' : null }; }); }, 'Match the noon weather: rain, very hot (33°C or more), windy, cool (22°C or less) or mild.'));
+  function (D) { return Object.keys(CLOTHES).map(function (k) { return { id: k, html: CLOTHES[k], slot: k === D.B.wear ? 'pick' : null }; }); }, 'Match the noon weather: rain, very hot (33°C or more), windy, cool (22°C or less) or mild.'));
 scenes.push(choiceScene('b6', 'What to do', 'Today we…', function (D) { return ['Noon: <b>' + D.B.noonT + '°C</b> and <b>' + SKIES[D.B.noonSky] + '</b>', 'What should we do?']; },
-  function (D) { return Object.keys(PLANS).map(function (k) { return { id: k, html: PLANS[k] + ' · ' + PLANS_WHY[k], slot: k === D.B.plan ? 'pick' : null }; }); }, 'Rain means indoors. Wind is for kites. 33°C or more is for swimming. Otherwise the park.'));
-scenes.push(solveScene('bS', function (D) { var b = D.B; return '<div class="eyebrow">Your solution</div><h2>Today’s plan</h2><div class="plan"><div class="pic">' + skySvg(b.noonSky) + '<span>' + b.dateText + ' · Noon ' + b.noonT + '°C · ' + SKIES[b.noonSky] + '</span></div><div class="prows"><div class="prow"><small>Best time</small><b>' + TIMES[b.bestTime] + '</b></div><div class="prow"><small>Wear</small><b>' + CLOTHES[b.wear] + '</b></div><div class="prow"><small>Do</small><b>' + PLANS[b.plan] + '</b></div></div></div>'; }));
+  function (D) { return Object.keys(PLANS).map(function (k) { return { id: k, html: PLANS[k], slot: k === D.B.plan ? 'pick' : null }; }); }, 'Rain means indoors. Wind is for kites. 33°C or more is for swimming. Otherwise the park.'));
+scenes.push(solveScene('bS', function (D) { var b = D.B; return '<div class="eyebrow">' + INSTR.bS[0] + '</div><h2>Today’s plan</h2><div class="plan"><div class="pic">' + skySvg(b.noonSky) + '<span>' + b.dateText + ' · Noon ' + b.noonT + '°C · ' + SKIES[b.noonSky] + '</span></div><div class="prows"><div class="prow"><small>Best time</small><b>' + TIMES[b.bestTime] + '</b></div><div class="prow"><small>Wear</small><b>' + CLOTHES[b.wear] + '</b></div><div class="prow"><small>Do</small><b>' + PLANS[b.plan] + '</b></div></div></div>'; }));
 // MISSION 3: Sports Day
 scenes.push(Kit.slots({ id: 'c1', name: 'Write the journal', cls: 'journal', guide: function (D) { return ['Forecast log: <b>Day 1</b>', '<b>' + D.C.w[0] + '°C</b> and <b>' + SKIES[D.C.sky[0]] + '</b>', 'Fill the journal page.']; }, reveal: 'The page is filled in.',
   chips: function (D) { var c = D.C, sk = Object.keys(SKIES).filter(function (k) { return k !== c.sky[0]; }); return [{ id: 'tmp', html: c.w[0] + '°C', slot: 'tmp' }, { id: 'skyc', html: SKIES[c.sky[0]], slot: 'sky' }, { id: 'fl', html: FEEL[c.sky[0]], slot: 'fl' }, { id: 'xt', html: c.w[1] + '°C', slot: null }, { id: 'xs', html: SKIES[sk[0]], slot: null }, { id: 'xf', html: FEEL[sk[1]], slot: null }].sort(function (a, b) { return a.id < b.id ? -1 : 1; }); },
   slots: function () { return [{ id: 'tmp', label: 'Temperature' }, { id: 'sky', label: 'Sky conditions' }, { id: 'fl', label: 'How the team felt' }]; }, cols: 1, bad1: function (D, n) { return n + ' notes are in the wrong place. '; }, hint: function () { return 'Copy the log, then pick the feeling that suits the weather. '; } }));
-scenes.push(chartScene('c2', 'C', { head: 'Day', items: DAYS }, ['Show the coach the week.', 'Drag each dot to its temperature.'], 'Forecast log'));
-scenes.push(Kit.num({ id: 'c3', name: 'Count the days', guide: function () { return ['How many days will be rainy or cloudy?']; }, reveal: function (D) { return D.C.rainyCloudy + ' of the 4 days are rainy or cloudy.'; }, hint: function () { return 'Look at each picture. Count the rain clouds and the grey clouds. '; }, bad1: function () { return 'Check each day’s picture. '; },
+scenes.push(chartScene('c2', 'C', { head: 'Day', items: DAYS }, INSTR.c2, 'Forecast log'));
+scenes.push(Kit.num({ id: 'c3', name: 'Count the days', guide: function () { return INSTR.c3; }, reveal: function (D) { return D.C.rainyCloudy + ' of the 4 days are rainy or cloudy.'; }, hint: function () { return 'Look at each picture. Count the rain clouds and the grey clouds. '; }, bad1: function () { return 'Check each day’s picture. '; },
   top: function (D) { return '<div class="thg" style="grid-template-columns:repeat(4,1fr);gap:16px">' + D.C.sky.map(function (k, i) { return '<div>' + skySvg(k) + '<b>Day ' + (i + 1) + '</b></div>'; }).join('') + '</div>'; }, fields: function (D) { return [{ lbl: 'Rainy or cloudy days', ans: D.C.rainyCloudy, unit: 'days' }]; } }));
-scenes.push(Kit.num({ id: 'c4', name: 'Hottest day', guide: function () { return ['Which day is the hottest?', 'And how much hotter than the coldest?']; }, reveal: function (D) { return 'Day ' + (D.C.hot + 1) + ' is hottest, ' + D.C.range + '°C above the coldest.'; }, hint: function () { return 'Find the biggest number: that is the hottest day. Then take the smallest from it. '; }, bad1: function () { return 'Pick the highest and lowest numbers in the log. '; },
+scenes.push(Kit.num({ id: 'c4', name: 'Hottest day', guide: function () { return INSTR.c4; }, reveal: function (D) { return 'Day ' + (D.C.hot + 1) + ' is hottest, ' + D.C.range + '°C above the coldest.'; }, hint: function () { return 'Find the biggest number: that is the hottest day. Then take the smallest from it. '; }, bad1: function () { return 'Pick the highest and lowest numbers in the log. '; },
   top: function (D) { return table('Forecast', DAYS, D.C.w); }, fields: function (D) { return [{ lbl: 'Hottest day (1 to 4)', ans: D.C.hot + 1, unit: '' }, { lbl: 'Hotter by', ans: D.C.range, unit: '°C' }]; } }));
-scenes.push(Kit.slots({ id: 'c5', name: 'Order the days', cls: 'stack', cols: 4, guide: function () { return ['Put the days in order.', 'Coolest first, hottest last.']; }, reveal: 'The days are in order.',
+scenes.push(Kit.slots({ id: 'c5', name: 'Order the days', cls: 'stack', cols: 4, guide: function () { return INSTR.c5; }, reveal: 'The days are in order.',
   chips: function (D) { var c = D.C; return c.w.map(function (t, i) { return { id: 'd' + i, html: 'Day ' + (i + 1) + ' · ' + t + '°C', slot: 'r' + c.order.indexOf(i) }; }); },
   slots: function () { return ['Coolest', '2nd', '3rd', 'Hottest'].map(function (l, i) { return { id: 'r' + i, label: '<b>' + l + '</b>' }; }); },
   bad1: function (D, n) { return n + ' days are in the wrong place. '; }, hint: function () { return 'Smallest number first, biggest number last. '; } }));
-scenes.push(choiceScene('c6', 'Pick Sports Day', 'Sports Day is on…', function () { return ['Best day: dry, calm, under 33°C, and the coolest of those.', 'Pick the day.']; },
+scenes.push(choiceScene('c6', 'Pick Sports Day', 'Sports Day is on…', function () { return INSTR.c6; },
   function (D) { var c = D.C; return c.w.map(function (t, i) { return { id: 'd' + i, html: 'Day ' + (i + 1) + ' · ' + t + '°C · ' + SKIES[c.sky[i]], slot: i === c.best ? 'pick' : null }; }); }, 'Cross out rainy and windy days and anything 33°C or more. Of the days left, take the coolest.'));
-scenes.push(solveScene('cS', function (D) { var d = D.C; return '<div class="eyebrow">Your solution</div><h2>Sports Day: Day ' + (d.best + 1) + '!</h2><p class="why">' + (d.sky[d.best] === 'cloudy' ? 'Dry and cool enough to play outdoors.' : 'Sunshine and a comfortable ' + d.w[d.best] + '°C: outdoors it is!') + '</p><div class="days">' + d.w.map(function (t, i) { return dayCard(d, i, i === d.best ? 'Sports Day!' : d.good[i] ? 'Good too' : 'Indoors', i === d.best ? 'best' : d.good[i] ? '' : 'no'); }).join('') + '</div>'; }));
-scenes.push(Kit.personal({ themes: THEMES, label: 'My town report', findings: function (Sx, D) { return 'I solved "' + MISSIONS[Sx.x.mission || 'a'].name + '". ' + solution(Sx, D) + '. I used real weather facts to decide.'; } }));
+scenes.push(solveScene('cS', function (D) { var d = D.C; return '<div class="eyebrow">' + INSTR.cS[0] + '</div><h2>Sports Day: Day ' + (d.best + 1) + '!</h2><p class="why">' + (d.sky[d.best] === 'cloudy' ? 'Dry and cool enough to play outdoors.' : 'Sunshine and a comfortable ' + d.w[d.best] + '°C: outdoors it is!') + '</p><div class="days">' + d.w.map(function (t, i) { return dayCard(d, i, i === d.best ? 'Sports Day!' : d.good[i] ? 'Good too' : 'Indoors', i === d.best ? 'best' : d.good[i] ? '' : 'no'); }).join('') + '</div>'; }));
+scenes.push(Kit.personal({ instr: INSTR.personalise, themes: THEMES, label: 'My weather report', findings: function (Sx, D) { return 'I solved "' + MISSIONS[Sx.x.mission || 'a'].name + '". ' + solution(Sx, D) + '. I used real weather facts to decide.'; } }));
 
 // which mission and task each scene belongs to (drives the header and the guide's "Mission 1 of 3 · Task 2 of 5")
 [{ n: 1, name: 'Picnic Day', setup: true, ids: ['season', 'a1', 'a2', 'a3', 'a4', 'a5', 'a6', 'aS'] }, { n: 2, name: 'Out Today', ids: ['b1', 'b2', 'b3', 'b4', 'b5', 'b6', 'bS'] }, { n: 3, name: 'Sports Day', ids: ['c1', 'c2', 'c3', 'c4', 'c5', 'c6', 'cS'] }].forEach(function (m) {
   m.ids.forEach(function (id, k) { var sc = scenes.filter(function (x) { return x.id === id; })[0]; sc.mission = 'abc'.charAt(m.n - 1); sc.mis = { n: m.n, name: m.name, task: m.setup ? k : k + 1, tasks: 6, solve: k === m.ids.length - 1 }; }); });
 
-/* ---------- the three problems (what am I solving? why? what will I learn?) ---------- */
+/* ---------- the three situations (what am I deciding? why? what will I learn?) ---------- */
 var MISSIONS = {
-  a: { name: 'Picnic Day', pic: 'sunny', problem: 'Is Saturday safe for the picnic?', learn: ['Read thermometers', 'Plot a chart', 'Decide'], role: 'Picnic Planner' },
-  b: { name: 'Out Today', pic: 'partly', problem: 'What do we wear and do today?', learn: ['Use a date', 'Observe the sky', 'Decide'], role: 'Day Planner' },
-  c: { name: 'Sports Day', pic: 'windy', problem: 'Outdoors or indoors?', learn: ['Record', 'Count', 'Compare'], role: 'Sports Day Planner' }
+  a: { name: 'Picnic Day', pic: 'sunny', problem: 'Which day is best for the picnic?', learn: ['Read thermometers', 'Plot a chart', 'Decide'], role: 'Picnic Planner' },
+  b: { name: 'Out Today', pic: 'partly', problem: 'What should I wear and do today?', learn: ['Use a date', 'Observe the sky', 'Decide'], role: 'Day Planner' },
+  c: { name: 'Sports Day', pic: 'windy', problem: 'Which day should we hold the races?', learn: ['Record', 'Count', 'Compare'], role: 'Sports Day Planner' }
 };
 function M(Sx) { return Sx.x.mission || 'a'; }
 function solution(Sx, D) {
@@ -161,10 +161,21 @@ function solution(Sx, D) {
   if (m === 'b') return 'Wear a ' + CLOTHES[D.B.wear].toLowerCase() + ' and ' + PLANS[D.B.plan].toLowerCase();
   var c = D.C; return 'Sports Day on Day ' + (c.best + 1) + ' (' + c.w[c.best] + '°C, ' + SKIES[c.sky[c.best]] + ')';
 }
-// the first screen: choose ONE problem; the rest of the project is built from that choice
-scenes.unshift({ id: 'pick', name: 'Choose your problem', cue: function () { return { tap: '.pick' }; }, render: function (el) {
+function answerText(id, D) { // the correct answer, shown only for revealed items in the PDF (DP-905)
+  var A = D.A, B = D.B, C = D.C, sk = function (l) { return l.map(function (k) { return SKIES[k]; }).join(', '); };
+  var t = { a1: A.w.join(', ') + ' C', a2: sk(A.sky), a3: A.w.join(', ') + ' C', a4: A.range + ' C', a5: 'Picnic days: ' + (A.good.map(function (g, i) { return g ? 'Day ' + (i + 1) : null; }).filter(Boolean).join(', ') || 'none'),
+    a6: 'Day ' + (A.best + 1) + ', ' + SKIES[A.sky[A.best]] + ', ' + (A.sky[A.best] === 'cloudy' ? 'Umbrella' : 'Sun hat'),
+    b1: SEASONS[B.season].n, b2: B.w.join(', ') + ' C', b3: sk(B.sky), b4: TIMES[B.bestTime], b5: CLOTHES[B.wear], b6: PLANS[B.plan],
+    c1: C.w[0] + ' C, ' + SKIES[C.sky[0]] + ', ' + FEEL[C.sky[0]], c2: C.w.join(', ') + ' C', c3: String(C.rainyCloudy), c4: 'Day ' + (C.hot + 1) + ', ' + C.range + ' C hotter than the coldest',
+    c5: C.order.map(function (i) { return 'Day ' + (i + 1); }).join(', '), c6: 'Day ' + (C.best + 1) };
+  return t[id] || '';
+}
+// the first screen: the ASK's Start and Choose in one. The learner picks ONE situation; the rest of the project is built from that choice
+scenes.unshift({ id: 'pick', name: 'Choose your situation', cue: function () { return { tap: '.pick' }; }, render: function (el) {
   var x = K.S().x, lock = K.started();
-  el.innerHTML = '<h2 class="ask">Pick a problem to solve</h2><div class="cards3 missions">' + ['a', 'b', 'c'].map(function (k) { var m = MISSIONS[k]; return '<button class="card pick" data-k="' + k + '"' + (lock ? ' disabled' : '') + '><div class="cimg">' + skySvg(m.pic) + '</div><b>' + m.name + '</b><span>' + m.problem + '</span><div class="learn"><small>You will learn</small>' + m.learn.map(function (t) { return '<i>' + t + '</i>'; }).join('') + '</div><i class="tick">' + Kit.tick() + ' Chosen</i></button>'; }).join('') + '</div>' + (lock ? '<p class="note">Locked: you have started this problem.</p>' : '');
+  el.innerHTML = '<div class="sthead"><h1>' + esc(K.C().title) + '</h1><p class="goal">Use weather facts to make a real decision.</p><p class="meta"><b>About 10 minutes.</b> You will make a weather decision report.</p></div>'
+    + '<h2 class="ask">' + esc(INSTR.pick[0]) + '</h2><div class="cards3 missions">' + ['a', 'b', 'c'].map(function (k) { var m = MISSIONS[k]; return '<button class="card pick" data-k="' + k + '"' + (lock ? ' disabled' : '') + '><div class="cimg">' + skySvg(m.pic) + '</div><b>' + m.name + '</b><span>' + m.problem + '</span><div class="learn"><small>You will learn</small>' + m.learn.map(function (t) { return '<i>' + t + '</i>'; }).join('') + '</div><i class="tick">' + Kit.tick() + ' Chosen</i></button>'; }).join('') + '</div>'
+    + (lock ? '<p class="note">Locked: you have started this situation.</p>' : '') + '<p class="startfine">' + esc(K.C().disclaimer) + ' ' + esc(K.C().aiNote) + '</p>';
   function paint() { $$('.pick', el).forEach(function (b) { b.classList.toggle('sel', b.dataset.k === x.mission); }); K.setFoot({ main: 'Start', en: !!x.mission, st: x.mission ? '' : 'Pick one to continue.', go: function () { K.rebuild(); K.next(); } }); }
   el.addEventListener('click', function (e) { var b = e.target.closest('.pick'); if (!b || b.disabled) return; x.mission = b.dataset.k; K.rebuild(); K.save(); K.SFX.tap(); paint(); });
   paint(); } });
@@ -176,7 +187,7 @@ function art(Sx, D) { var m = M(Sx), sk = m === 'a' ? D.A.sky : m === 'b' ? D.B.
 var N = window.NARRATION;
 function T(id, extra) { return Object.assign({ id: id, t: N[id] }, extra || {}); }
 Kit.run({ coach: {
-  intro: function () { return [T('intro1'), T('intro2'), T('intro3'), T('intro4')]; },
+  intro: function () { return [T('intro1'), T('intro2'), T('intro3')]; },
   scenes: {
     season: [T('mA1'), T('mA2'), T('mA3'), T('season', { skill: 'Planning' })], a1: [T('a1', { skill: 'Measuring' })], a2: [T('a2', { skill: 'Observing' })], a3: [T('a3', { skill: 'Charting' })], a4: [T('a4', { skill: 'Comparing' })], a5: [T('a5', { skill: 'Sorting' })], a6: [T('a6', { skill: 'Recording' })], aS: [T('aS')],
     b1: [T('mB1'), T('mB2'), T('mB3'), T('b1', { skill: 'Using dates' })], b2: [T('b2', { skill: 'Measuring' })], b3: [T('b3', { skill: 'Observing' })], b4: [T('b4', { skill: 'Comparing' })], b5: [T('b5', { skill: 'Deciding' })], b6: [T('b6', { skill: 'Deciding' })], bS: [T('bS')],
@@ -185,11 +196,12 @@ Kit.run({ coach: {
   } },
   filter: function (Sx, sc) { return !sc.mission || sc.mission === Sx.x.mission; }, // only the chosen mission's scenes
   sync: function (Sx) { var C = K.C(); C.items = C.missions[M(Sx)]; },                // and only its five scored tasks
-  guideSvg: guideSvg, scenes: scenes, themes: THEMES, guideName: 'Sunny', defaultName: 'Young Reporter', artTitle: 'Your solution',
+  guideSvg: guideSvg, scenes: scenes, themes: THEMES, guideName: 'Sunny', defaultName: 'Learner', artTitle: 'Your solution',
   dataKey: function (Sx) { return Sx.x.mission ? Sx.seed + '|' + Sx.x.mission + '|' + (Sx.x.season || '') + '|' + (Sx.x.today || '') : ''; }, data: makeAll,
   itemNames: { a1: 'Read thermometers', a2: 'Label the skies', a3: 'Plot the chart', a4: 'Compare days', a5: 'Sort the days', a6: 'Write the notice', b1: 'Season from the date', b2: 'Read thermometers', b3: 'Label the skies', b4: 'Best time to go out', b5: 'What to wear', b6: 'What to do', c1: 'Write the journal', c2: 'Plot the chart', c3: 'Count the days', c4: 'Hottest day', c5: 'Order the days', c6: 'Pick the day' },
-  headline: function (Sx) { return outcome(Sx); }, line: function (Sx) { return 'for solving \u201C' + MISSIONS[M(Sx)].name + '\u201D in Weather Station (L1LC01) with real weather data, as'; }, outro: 'You used weather facts to solve a real problem.',
+  headline: function (Sx) { return outcome(Sx); }, line: function (Sx) { return 'for deciding \u201C' + MISSIONS[M(Sx)].name + '\u201D in Weather Station (L1LC01) using real weather data, as'; }, outro: 'You used real weather facts to make a good decision.',
   badges: function (Sx) { return [{ b: MISSIONS[M(Sx)].name, s: 'solved' }, { b: '6 tasks', s: 'done' }]; }, art: art,
-  chain: function (Sx, D) { var m = MISSIONS[M(Sx)]; return [{ choice: 'Problem: ' + m.name, consequence: m.problem }, { choice: 'Skills you used', consequence: m.learn.join(', ') + '.' }, { choice: 'Your solution', consequence: solution(Sx, D) + '.' }, { choice: 'Outcome', consequence: outcome(Sx) + '.' }]; },
+  chain: function (Sx, D) { var m = MISSIONS[M(Sx)], first = M(Sx) === 'a' ? 'Situation: ' + m.name + '. Season: ' + SEASONS[D.season].n + '.' : M(Sx) === 'b' ? 'Situation: ' + m.name + '. Date used: ' + D.B.dateText + '.' : 'Situation: ' + m.name + '.'; return [{ choice: 'Your choices', consequence: first }, { choice: 'Skills you used', consequence: m.learn.join(', ') + '.' }, { choice: 'Your solution', consequence: solution(Sx, D) + '.' }, { choice: 'Outcome', consequence: outcome(Sx) + '.' }]; },
+  answers: answerText, reviewInstr: INSTR.review,
   pdfArt: function (pdf, x, y, w, h, t, Sx, D) { var m = M(Sx), W_ = m === 'a' ? D.A.w : m === 'b' ? D.B.w : D.C.w, lab = m === 'b' ? ['Morn', 'Noon', 'Aft', 'Eve'] : ['Day 1', 'Day 2', 'Day 3', 'Day 4'], lo = Math.min.apply(null, W_) - 3, hi = Math.max.apply(null, W_) + 2; pdf.rect(x, y, w, h, '#FFFFFF', t.ink, 1.5); W_.forEach(function (v, i) { var bh = (v - lo) / (hi - lo) * (h - 70), bx = x + 30 + i * 85; pdf.rect(bx, y + h - 30 - bh, 60, bh, i % 2 ? t.acc : t.hi, t.ink, 1); pdf.text(bx + 30, y + h - 34 - bh, v + ' C', 11, 'bold', t.ink, 'c'); pdf.text(bx + 30, y + h - 12, lab[i], 10, 'sans', t.ink, 'c'); }); pdf.text(x + w / 2, y + 20, 'My temperatures: ' + MISSIONS[m].name, 11, 'bold', t.ink, 'c'); } });
 })();

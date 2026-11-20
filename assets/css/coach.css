@@ -41,9 +41,9 @@
 
 /* Skip: the only live control while the guide talks (top-right) */
 #coach .bar{position:absolute;right:36px;top:18px;display:flex;gap:18px;z-index:80;pointer-events:auto}
-#coach .bar button{font:inherit;font-weight:700;font-size:34px;height:76px;padding:0 34px;border-radius:999px;border:5px solid #fff;background:#E4572E;color:#fff;cursor:pointer;display:flex;align-items:center;gap:12px;box-shadow:0 5px 0 rgba(0,0,0,.3)}
+#coach .bar button{font:inherit;font-weight:700;font-size:34px;height:76px;width:76px;padding:0;justify-content:center;border-radius:999px;border:5px solid #fff;background:#E4572E;color:#fff;cursor:pointer;display:flex;align-items:center;gap:12px;box-shadow:0 5px 0 rgba(0,0,0,.3)}
 #coach .bar button:focus-visible{outline:6px solid #FFC93C;outline-offset:4px}
-#coach .bar svg{width:36px;height:36px}
+#coach .bar svg{width:40px;height:40px;flex:none}
 @media (hover:hover){#coach .bar button:hover{filter:brightness(1.12)}}
 
 /* tap-to-begin gate: browsers only allow audio after a tap */

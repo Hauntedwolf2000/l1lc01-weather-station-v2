@@ -54,3 +54,32 @@
 .learn{margin-top:auto;padding-top:10px}.learn small{display:block;font-size:24px;color:var(--muted);text-transform:uppercase;letter-spacing:2px;font-weight:700;margin-bottom:8px}
 .learn i{display:inline-block;font-style:normal;font-size:28px;font-weight:600;background:#E8F4FD;border:3px solid #BFE3F7;border-radius:999px;padding:2px 16px;margin:0 8px 8px 0;color:var(--ink)}
 .missions .card>span{min-height:84px}.learn{margin-top:0}
+
+/* ASK v1.2: no emoji (hand is an image, stars and backspace are drawn), solid text backgrounds, legible sizes */
+#hand{font-size:0;width:90px;height:auto}#hand img{width:100%;display:block}#hand.down img{transform:rotate(180deg)}
+.pip svg{width:36px;height:36px;display:block}.pip.f svg{fill:#F2B705;stroke:#B07A00}.pip.e svg{fill:none;stroke:#8A5D00}
+.key svg{width:44px;height:44px}
+#coach .bar button{width:76px;padding:0;justify-content:center}#coach .bar svg{width:40px;height:40px}
+.hdr{background:#CFEFFF;border-bottom:8px solid #7BD88F}
+#stage{background:var(--bg)}
+.hbtn:disabled{opacity:.45}
+/* right / wrong marks are drawn icons (not typed symbols); never colour alone: the icon shape differs */
+.field.ok::after,.chip.ok::after,.field.no::after,.chip.bad::after{content:"";display:inline-block;width:44px;height:44px;margin-left:8px;font-size:0;background-repeat:no-repeat;background-position:center;background-size:contain}
+.field.ok::after,.chip.ok::after{background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'><path d='M10 25 L21 36 L40 14' fill='none' stroke='%230B7A4B' stroke-width='6' stroke-linecap='round' stroke-linejoin='round'/></svg>")}
+.field.no::after,.chip.bad::after{background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'><path d='M13 13 L35 35 M35 13 L13 35' fill='none' stroke='%23C2321F' stroke-width='6' stroke-linecap='round'/></svg>")}
+
+/* Start + Choose screen (ASK screen flow): title, goal, about 10 minutes, what you make, disclaimer */
+.sthead{display:flex;align-items:baseline;flex-wrap:wrap;gap:6px 28px;margin:0 0 6px}.sthead h1{font-size:60px;line-height:1.05;margin:0;color:var(--ink)}.sthead .goal{font-size:40px;margin:0;color:var(--ink)}.sthead .meta{font-size:34px;margin:0;color:var(--ink);flex-basis:100%}
+.missions .cimg{height:210px}.missions .card>span{min-height:0}.cards3.missions{margin-top:8px}
+.startfine{font-size:28px;line-height:1.25;color:var(--ink);background:#fff;border:3px solid #BFE3F7;border-radius:18px;padding:8px 18px;margin:12px 0 0}
+.findtxt{font-size:34px;line-height:1.25;margin:0 0 12px;color:var(--ink)}.scoreline{font-size:34px;font-weight:700;margin:6px 0}
+.missions .cimg{height:150px}.missions .card{padding:20px 26px}.missions .card b{font-size:44px}.sthead{margin-bottom:0}
+.learn small{font-size:28px}
+/* muted/off buttons keep full-contrast labels: the strike-through icon (not a faded colour) shows "off" (DP-504) */
+.hbtn.off{color:var(--on-dark)}.hbtn.off .wave{opacity:1}.hbtn.off .strike{display:inline;stroke:#C2321F}
+/* journal labels sit on a solid panel, not on the lined-paper pattern (DP-514) */
+.journal .slab{display:inline-block;background:#fff;border-radius:10px;padding:2px 14px;align-self:flex-start}
+/* touch targets as large as the fixed 120px header and footer bands allow (DP-204) */
+.hbtn{width:112px;height:112px}.btn{height:112px}.chip:not(:has(svg)){min-height:104px;padding:8px 30px}.pool{gap:24px}
+.missions .cimg{height:124px}.cards3.missions{margin-top:4px;gap:32px}.startfine{margin-top:8px;padding:6px 18px}
+#content:has(>.toprow)>.split{flex:1 1 0;min-height:0;margin-bottom:14px}
